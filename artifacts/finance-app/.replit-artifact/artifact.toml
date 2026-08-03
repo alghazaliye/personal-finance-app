@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "حسابي — تطبيق المحاسبة الشخصية"
+description = "تطبيق محاسبة شخصية شامل يساعد المستخدمين على إدارة أموالهم — تسجيل الدخل والمصروفات، إدارة الحسابات والمحافظ، متابعة الميزانية، رسوم بيانية، تقارير مالية، ودعم عملات متعددة. يدعم العربية RTL بالكامل مع وضع ليلي."
+version = "1.0.0"
+id = "artifacts/finance-app"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18748
+
+[services.development]
+run = "pnpm --filter @workspace/finance-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/finance-app", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/finance-app/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18748"
+BASE_PATH = "/"

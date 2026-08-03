@@ -2,21 +2,53 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 1.0.0
+  description: Personal Finance & Accounting App API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User profile management
+  - name: accounts
+    description: Financial accounts (wallets, banks, cards)
+  - name: transactions
+    description: Financial transactions
+  - name: categories
+    description: Transaction categories
+  - name: currencies
+    description: Currency management
+  - name: budgets
+    description: Budget management
+  - name: reports
+    description: Financial reports
+  - name: subscriptions
+    description: Subscription management
+  - name: plans
+    description: Subscription plans
+  - name: payments
+    description: Payment records
+  - name: notifications
+    description: Push notifications
+  - name: backups
+    description: Data backup management
+  - name: settings
+    description: App settings
+  - name: admin
+    description: Admin panel operations
+  - name: dashboard
+    description: Dashboard summary data
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +56,3079 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ───────────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenInput"
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/google:
+    post:
+      operationId: googleAuth
+      tags: [auth]
+      summary: Authenticate with Google
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleAuthInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordInput"
+      responses:
+        "200":
+          description: Reset email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── USERS ──────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    put:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/me/avatar:
+    post:
+      operationId: uploadAvatar
+      tags: [users]
+      summary: Upload user avatar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadAvatarInput"
+      responses:
+        "200":
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [avatarUrl]
+                properties:
+                  avatarUrl:
+                    type: string
+
+  # ─── DASHBOARD ──────────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary (balances, income, expenses)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+        - name: currency
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/chart:
+    get:
+      operationId: getDashboardChart
+      tags: [dashboard]
+      summary: Get income/expense chart data
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+        - name: currency
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Chart data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChartData"
+
+  /dashboard/recent-transactions:
+    get:
+      operationId: getRecentTransactions
+      tags: [dashboard]
+      summary: Get recent transactions for dashboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 10
+      responses:
+        "200":
+          description: Recent transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [transactions]
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+
+  /dashboard/category-breakdown:
+    get:
+      operationId: getCategoryBreakdown
+      tags: [dashboard]
+      summary: Get spending breakdown by category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, expense]
+            default: expense
+      responses:
+        "200":
+          description: Category breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryBreakdown"
+
+  # ─── ACCOUNTS ───────────────────────────────────────────────
+  /accounts:
+    get:
+      operationId: getAccounts
+      tags: [accounts]
+      summary: Get all user accounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accounts]
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Account"
+    post:
+      operationId: createAccount
+      tags: [accounts]
+      summary: Create a new account
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountRequest"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+
+  /accounts/{id}:
+    get:
+      operationId: getAccount
+      tags: [accounts]
+      summary: Get account by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+    put:
+      operationId: updateAccount
+      tags: [accounts]
+      summary: Update account
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccountRequest"
+      responses:
+        "200":
+          description: Account updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+    delete:
+      operationId: deleteAccount
+      tags: [accounts]
+      summary: Delete account
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /accounts/{id}/summary:
+    get:
+      operationId: getAccountSummary
+      tags: [accounts]
+      summary: Get account summary with balance history
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Account summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountSummary"
+
+  # ─── TRANSACTIONS ────────────────────────────────────────────
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [transactions]
+      summary: Get transactions with filters
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+        - name: accountId
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, expense, transfer]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: currency
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTransactions"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Create a new transaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequest"
+      responses:
+        "201":
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/{id}:
+    get:
+      operationId: getTransaction
+      tags: [transactions]
+      summary: Get transaction by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    put:
+      operationId: updateTransaction
+      tags: [transactions]
+      summary: Update transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransactionRequest"
+      responses:
+        "200":
+          description: Transaction updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    delete:
+      operationId: deleteTransaction
+      tags: [transactions]
+      summary: Delete transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Transaction deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /transactions/transfer:
+    post:
+      operationId: createTransfer
+      tags: [transactions]
+      summary: Transfer between accounts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransferRequest"
+      responses:
+        "201":
+          description: Transfer created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [fromTransaction, toTransaction]
+                properties:
+                  fromTransaction:
+                    $ref: "#/components/schemas/Transaction"
+                  toTransaction:
+                    $ref: "#/components/schemas/Transaction"
+
+  # ─── CATEGORIES ──────────────────────────────────────────────
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [categories]
+      summary: Get all categories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, expense, all]
+            default: all
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [categories]
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create custom category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    put:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update category
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCategoryRequest"
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete custom category
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── CURRENCIES ──────────────────────────────────────────────
+  /currencies:
+    get:
+      operationId: getCurrencies
+      tags: [currencies]
+      summary: Get all available currencies
+      responses:
+        "200":
+          description: Currencies list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [currencies]
+                properties:
+                  currencies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Currency"
+
+  /currencies/exchange-rates:
+    get:
+      operationId: getExchangeRates
+      tags: [currencies]
+      summary: Get exchange rates for a base currency
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: base
+          in: query
+          required: true
+          schema:
+            type: string
+            example: USD
+      responses:
+        "200":
+          description: Exchange rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeRates"
+
+  /currencies/convert:
+    get:
+      operationId: convertCurrency
+      tags: [currencies]
+      summary: Convert amount between currencies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Conversion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversionResult"
+
+  # ─── BUDGETS ─────────────────────────────────────────────────
+  /budgets:
+    get:
+      operationId: getBudgets
+      tags: [budgets]
+      summary: Get all budgets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: number
+        - name: year
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Budgets list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [budgets]
+                properties:
+                  budgets:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Budget"
+    post:
+      operationId: createBudget
+      tags: [budgets]
+      summary: Create a budget
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBudgetRequest"
+      responses:
+        "201":
+          description: Budget created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+
+  /budgets/{id}:
+    put:
+      operationId: updateBudget
+      tags: [budgets]
+      summary: Update budget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBudgetRequest"
+      responses:
+        "200":
+          description: Budget updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+    delete:
+      operationId: deleteBudget
+      tags: [budgets]
+      summary: Delete budget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Budget deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /budgets/overview:
+    get:
+      operationId: getBudgetOverview
+      tags: [budgets]
+      summary: Get budget overview with spending progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: number
+        - name: year
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Budget overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetOverview"
+
+  # ─── REPORTS ─────────────────────────────────────────────────
+  /reports/monthly:
+    get:
+      operationId: getMonthlyReport
+      tags: [reports]
+      summary: Get monthly income/expense report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: currency
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monthly report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyReport"
+
+  /reports/annual:
+    get:
+      operationId: getAnnualReport
+      tags: [reports]
+      summary: Get annual report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: currency
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Annual report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnualReport"
+
+  /reports/category:
+    get:
+      operationId: getCategoryReport
+      tags: [reports]
+      summary: Get report by category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, expense]
+            default: expense
+      responses:
+        "200":
+          description: Category report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryReport"
+
+  /reports/export:
+    post:
+      operationId: exportReport
+      tags: [reports]
+      summary: Export report as PDF
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportReportRequest"
+      responses:
+        "200":
+          description: PDF report
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  # ─── SUBSCRIPTIONS ────────────────────────────────────────────
+  /subscriptions/current:
+    get:
+      operationId: getCurrentSubscription
+      tags: [subscriptions]
+      summary: Get current user subscription
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscription"
+
+  /subscriptions/plans:
+    get:
+      operationId: getSubscriptionPlans
+      tags: [subscriptions]
+      summary: Get all available subscription plans
+      responses:
+        "200":
+          description: Subscription plans
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plans]
+                properties:
+                  plans:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Plan"
+
+  /subscriptions/subscribe:
+    post:
+      operationId: subscribe
+      tags: [subscriptions]
+      summary: Subscribe to a plan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribeRequest"
+      responses:
+        "200":
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscription"
+
+  /subscriptions/cancel:
+    post:
+      operationId: cancelSubscription
+      tags: [subscriptions]
+      summary: Cancel current subscription
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Subscription cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /subscriptions/usage:
+    get:
+      operationId: getSubscriptionUsage
+      tags: [subscriptions]
+      summary: Get transaction usage vs plan limits
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Usage data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionUsage"
+
+  # ─── PAYMENTS ────────────────────────────────────────────────
+  /payments/history:
+    get:
+      operationId: getPaymentHistory
+      tags: [payments]
+      summary: Get payment history
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+      responses:
+        "200":
+          description: Payment history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedPayments"
+
+  /payments/verify:
+    post:
+      operationId: verifyPayment
+      tags: [payments]
+      summary: Verify in-app purchase
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPaymentRequest"
+      responses:
+        "200":
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentRecord"
+
+  # ─── NOTIFICATIONS ────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get user notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedNotifications"
+
+  /notifications/{id}/read:
+    put:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/read-all:
+    put:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/unread-count:
+    get:
+      operationId: getUnreadNotificationsCount
+      tags: [notifications]
+      summary: Get unread notifications count
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count]
+                properties:
+                  count:
+                    type: number
+
+  /notifications/fcm-token:
+    put:
+      operationId: updateFcmToken
+      tags: [notifications]
+      summary: Update Firebase Cloud Messaging token
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFcmTokenInput"
+      responses:
+        "200":
+          description: Token updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── BACKUPS ─────────────────────────────────────────────────
+  /backups:
+    get:
+      operationId: getBackups
+      tags: [backups]
+      summary: Get backup history
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Backup list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [backups]
+                properties:
+                  backups:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Backup"
+
+  /backups/create:
+    post:
+      operationId: createBackup
+      tags: [backups]
+      summary: Create a new backup
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Backup created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Backup"
+
+  /backups/{id}/restore:
+    post:
+      operationId: restoreBackup
+      tags: [backups]
+      summary: Restore from backup
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Backup restored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /backups/export:
+    get:
+      operationId: exportData
+      tags: [backups]
+      summary: Export user data as JSON
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User data export
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ─── SETTINGS ────────────────────────────────────────────────
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get user settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update user settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettingsRequest"
+      responses:
+        "200":
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+
+  # ─── ADMIN ───────────────────────────────────────────────────
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/revenue:
+    get:
+      operationId: getAdminRevenue
+      tags: [admin]
+      summary: Get revenue chart data
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+      responses:
+        "200":
+          description: Revenue data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueData"
+
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: Get all users (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, trial, subscribed]
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAdminUsers"
+
+  /admin/users/{id}:
+    get:
+      operationId: getAdminUser
+      tags: [admin]
+      summary: Get user details (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDetail"
+    put:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update user (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDetail"
+
+  /admin/users/{id}/toggle-status:
+    put:
+      operationId: toggleUserStatus
+      tags: [admin]
+      summary: Toggle user active/inactive status
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/plans:
+    get:
+      operationId: getAdminPlans
+      tags: [admin]
+      summary: Get all plans (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Plans list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plans]
+                properties:
+                  plans:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Plan"
+    post:
+      operationId: createPlan
+      tags: [admin]
+      summary: Create subscription plan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlanRequest"
+      responses:
+        "201":
+          description: Plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+
+  /admin/plans/{id}:
+    put:
+      operationId: updatePlan
+      tags: [admin]
+      summary: Update subscription plan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlanRequest"
+      responses:
+        "200":
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+    delete:
+      operationId: deletePlan
+      tags: [admin]
+      summary: Delete subscription plan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Plan deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/currencies:
+    get:
+      operationId: getAdminCurrencies
+      tags: [admin]
+      summary: Get all currencies (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Currencies
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [currencies]
+                properties:
+                  currencies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Currency"
+    post:
+      operationId: addCurrency
+      tags: [admin]
+      summary: Add a currency
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCurrencyRequest"
+      responses:
+        "201":
+          description: Currency added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Currency"
+
+  /admin/currencies/{id}/exchange-rate:
+    put:
+      operationId: updateExchangeRate
+      tags: [admin]
+      summary: Update currency exchange rate
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExchangeRateInput"
+      responses:
+        "200":
+          description: Exchange rate updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Currency"
+
+  /admin/subscriptions:
+    get:
+      operationId: getAdminSubscriptions
+      tags: [admin]
+      summary: Get all subscriptions (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, cancelled, expired, trial]
+      responses:
+        "200":
+          description: Subscriptions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAdminSubscriptions"
+
+  /admin/settings:
+    get:
+      operationId: getAdminSettings
+      tags: [admin]
+      summary: Get system settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: System settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSettings"
+    put:
+      operationId: updateAdminSettings
+      tags: [admin]
+      summary: Update system settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSystemSettingsRequest"
+      responses:
+        "200":
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSettings"
+
+  /admin/send-notification:
+    post:
+      operationId: sendAdminNotification
+      tags: [admin]
+      summary: Send push notification to users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendNotificationRequest"
+      responses:
+        "200":
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+# ─── COMPONENTS ───────────────────────────────────────────────
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    SuccessResponse:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+    # ─── AUTH ───────────────────────────────────────────────────
+    RefreshTokenInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    GoogleAuthInput:
+      type: object
+      required: [idToken]
+      properties:
+        idToken:
+          type: string
+
+    ForgotPasswordInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordInput:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          minLength: 8
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+
+    UploadAvatarInput:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+          format: binary
+
+    UpdateFcmTokenInput:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+        platform:
+          type: string
+          enum: [android, ios, web]
+
+    UpdateExchangeRateInput:
+      type: object
+      required: [rate]
+      properties:
+        rate:
+          type: number
+        base:
+          type: string
+
+    RegisterRequest:
+      type: object
+      required: [email, password, name, currencyCode]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+        currencyCode:
+          type: string
+          example: USD
+        country:
+          type: string
+        phone:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    # ─── USERS ──────────────────────────────────────────────────
+    UserProfile:
+      type: object
+      required: [id, email, name, currencyCode, role, isActive, createdAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        currencyCode:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [user, admin]
+        isActive:
+          type: boolean
+        trialEndsAt:
+          type: string
+          format: date-time
+          nullable: true
+        subscription:
+          $ref: "#/components/schemas/UserSubscriptionBrief"
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    UserSubscriptionBrief:
+      type: object
+      required: [planName, status, expiresAt]
+      properties:
+        planName:
+          type: string
+        status:
+          type: string
+          enum: [trial, active, cancelled, expired]
+        expiresAt:
+          type: string
+          format: date-time
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        country:
+          type: string
+        currencyCode:
+          type: string
+
+    # ─── DASHBOARD ──────────────────────────────────────────────
+    DashboardSummary:
+      type: object
+      required: [totalBalance, totalIncome, totalExpense, netBalance, currency, accountCount, transactionCount]
+      properties:
+        totalBalance:
+          type: number
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        netBalance:
+          type: number
+        currency:
+          type: string
+        accountCount:
+          type: number
+        transactionCount:
+          type: number
+        incomeChange:
+          type: number
+          description: Percentage change from previous period
+        expenseChange:
+          type: number
+          description: Percentage change from previous period
+
+    ChartData:
+      type: object
+      required: [labels, income, expenses]
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+        income:
+          type: array
+          items:
+            type: number
+        expenses:
+          type: array
+          items:
+            type: number
+        currency:
+          type: string
+
+    CategoryBreakdown:
+      type: object
+      required: [items, total, currency]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryBreakdownItem"
+        total:
+          type: number
+        currency:
+          type: string
+
+    CategoryBreakdownItem:
+      type: object
+      required: [categoryId, categoryName, categoryIcon, categoryColor, amount, percentage]
+      properties:
+        categoryId:
+          type: string
+        categoryName:
+          type: string
+        categoryIcon:
+          type: string
+        categoryColor:
+          type: string
+        amount:
+          type: number
+        percentage:
+          type: number
+
+    # ─── ACCOUNTS ───────────────────────────────────────────────
+    Account:
+      type: object
+      required: [id, name, type, currencyCode, balance, isActive, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [cash, bank, card, savings, investment, other]
+        currencyCode:
+          type: string
+        balance:
+          type: number
+        color:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        bankName:
+          type: string
+          nullable: true
+        accountNumber:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    AccountSummary:
+      type: object
+      required: [account, transactions, balanceHistory]
+      properties:
+        account:
+          $ref: "#/components/schemas/Account"
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        balanceHistory:
+          type: array
+          items:
+            type: object
+            required: [date, balance]
+            properties:
+              date:
+                type: string
+              balance:
+                type: number
+
+    CreateAccountRequest:
+      type: object
+      required: [name, type, currencyCode, balance]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [cash, bank, card, savings, investment, other]
+        currencyCode:
+          type: string
+        balance:
+          type: number
+        color:
+          type: string
+        icon:
+          type: string
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [cash, bank, card, savings, investment, other]
+        currencyCode:
+          type: string
+        color:
+          type: string
+        icon:
+          type: string
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        isActive:
+          type: boolean
+
+    # ─── TRANSACTIONS ─────────────────────────────────────────────
+    Transaction:
+      type: object
+      required: [id, type, amount, currencyCode, accountId, categoryId, date, createdAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [income, expense, transfer]
+        amount:
+          type: number
+        currencyCode:
+          type: string
+        exchangeRate:
+          type: number
+          nullable: true
+        accountId:
+          type: string
+        account:
+          $ref: "#/components/schemas/Account"
+          nullable: true
+        categoryId:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        receiptUrl:
+          type: string
+          nullable: true
+        transferToAccountId:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedTransactions:
+      type: object
+      required: [transactions, total, page, limit, totalPages]
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+        totalPages:
+          type: number
+
+    CreateTransactionRequest:
+      type: object
+      required: [type, amount, currencyCode, accountId, categoryId, date]
+      properties:
+        type:
+          type: string
+          enum: [income, expense]
+        amount:
+          type: number
+        currencyCode:
+          type: string
+        accountId:
+          type: string
+        categoryId:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        receiptUrl:
+          type: string
+
+    UpdateTransactionRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [income, expense]
+        amount:
+          type: number
+        currencyCode:
+          type: string
+        accountId:
+          type: string
+        categoryId:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        receiptUrl:
+          type: string
+
+    CreateTransferRequest:
+      type: object
+      required: [fromAccountId, toAccountId, amount, currencyCode, date]
+      properties:
+        fromAccountId:
+          type: string
+        toAccountId:
+          type: string
+        amount:
+          type: number
+        currencyCode:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    # ─── CATEGORIES ───────────────────────────────────────────────
+    Category:
+      type: object
+      required: [id, name, type, icon, color, isDefault]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameAr:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [income, expense, both]
+        icon:
+          type: string
+        color:
+          type: string
+        isDefault:
+          type: boolean
+        parentId:
+          type: string
+          nullable: true
+
+    CreateCategoryRequest:
+      type: object
+      required: [name, type, icon, color]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        type:
+          type: string
+          enum: [income, expense, both]
+        icon:
+          type: string
+        color:
+          type: string
+        parentId:
+          type: string
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+
+    # ─── CURRENCIES ───────────────────────────────────────────────
+    Currency:
+      type: object
+      required: [id, code, name, symbol, isActive]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+          example: USD
+        name:
+          type: string
+        nameAr:
+          type: string
+          nullable: true
+        symbol:
+          type: string
+        flag:
+          type: string
+          nullable: true
+        rateToUsd:
+          type: number
+          nullable: true
+        isActive:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ExchangeRates:
+      type: object
+      required: [base, rates, updatedAt]
+      properties:
+        base:
+          type: string
+        rates:
+          type: object
+          additionalProperties:
+            type: number
+        updatedAt:
+          type: string
+          format: date-time
+
+    ConversionResult:
+      type: object
+      required: [from, to, amount, convertedAmount, rate]
+      properties:
+        from:
+          type: string
+        to:
+          type: string
+        amount:
+          type: number
+        convertedAmount:
+          type: number
+        rate:
+          type: number
+
+    CreateCurrencyRequest:
+      type: object
+      required: [code, name, symbol]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        nameAr:
+          type: string
+        symbol:
+          type: string
+        flag:
+          type: string
+        rateToUsd:
+          type: number
+
+    # ─── BUDGETS ─────────────────────────────────────────────────
+    Budget:
+      type: object
+      required: [id, categoryId, amount, currencyCode, month, year, spent, remaining]
+      properties:
+        id:
+          type: string
+        categoryId:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+          nullable: true
+        amount:
+          type: number
+        currencyCode:
+          type: string
+        month:
+          type: number
+        year:
+          type: number
+        spent:
+          type: number
+        remaining:
+          type: number
+        percentage:
+          type: number
+        alertThreshold:
+          type: number
+          nullable: true
+
+    BudgetOverview:
+      type: object
+      required: [totalBudget, totalSpent, totalRemaining, budgets, currency]
+      properties:
+        totalBudget:
+          type: number
+        totalSpent:
+          type: number
+        totalRemaining:
+          type: number
+        currency:
+          type: string
+        budgets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Budget"
+
+    CreateBudgetRequest:
+      type: object
+      required: [categoryId, amount, currencyCode, month, year]
+      properties:
+        categoryId:
+          type: string
+        amount:
+          type: number
+        currencyCode:
+          type: string
+        month:
+          type: number
+        year:
+          type: number
+        alertThreshold:
+          type: number
+
+    UpdateBudgetRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        alertThreshold:
+          type: number
+
+    # ─── REPORTS ─────────────────────────────────────────────────
+    MonthlyReport:
+      type: object
+      required: [month, year, currency, totalIncome, totalExpense, netBalance, byCategory, byAccount, dailyData]
+      properties:
+        month:
+          type: number
+        year:
+          type: number
+        currency:
+          type: string
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        netBalance:
+          type: number
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryBreakdownItem"
+        byAccount:
+          type: array
+          items:
+            type: object
+            required: [accountId, accountName, income, expense, balance]
+            properties:
+              accountId:
+                type: string
+              accountName:
+                type: string
+              income:
+                type: number
+              expense:
+                type: number
+              balance:
+                type: number
+        dailyData:
+          type: array
+          items:
+            type: object
+            required: [date, income, expense]
+            properties:
+              date:
+                type: string
+              income:
+                type: number
+              expense:
+                type: number
+
+    AnnualReport:
+      type: object
+      required: [year, currency, totalIncome, totalExpense, netBalance, monthlyData, topCategories]
+      properties:
+        year:
+          type: number
+        currency:
+          type: string
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        netBalance:
+          type: number
+        monthlyData:
+          type: array
+          items:
+            type: object
+            required: [month, income, expense]
+            properties:
+              month:
+                type: number
+              income:
+                type: number
+              expense:
+                type: number
+        topCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryBreakdownItem"
+
+    CategoryReport:
+      type: object
+      required: [startDate, endDate, type, currency, categories]
+      properties:
+        startDate:
+          type: string
+        endDate:
+          type: string
+        type:
+          type: string
+        currency:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryBreakdownItem"
+
+    ExportReportRequest:
+      type: object
+      required: [type, startDate, endDate]
+      properties:
+        type:
+          type: string
+          enum: [monthly, annual, category, custom]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        currency:
+          type: string
+        includeCharts:
+          type: boolean
+
+    # ─── SUBSCRIPTIONS & PLANS ────────────────────────────────────
+    Plan:
+      type: object
+      required: [id, name, price, currency, interval, transactionLimit, features, isActive]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameAr:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        currency:
+          type: string
+        interval:
+          type: string
+          enum: [monthly, yearly, lifetime]
+        transactionLimit:
+          type: number
+          nullable: true
+          description: null means unlimited
+        features:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        isFree:
+          type: boolean
+        trialDays:
+          type: number
+          nullable: true
+        googlePlayProductId:
+          type: string
+          nullable: true
+        appleProductId:
+          type: string
+          nullable: true
+
+    UserSubscription:
+      type: object
+      required: [id, planId, plan, status, startDate, expiresAt]
+      properties:
+        id:
+          type: string
+        planId:
+          type: string
+        plan:
+          $ref: "#/components/schemas/Plan"
+        status:
+          type: string
+          enum: [trial, active, cancelled, expired]
+        startDate:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+        autoRenew:
+          type: boolean
+
+    SubscribeRequest:
+      type: object
+      required: [planId]
+      properties:
+        planId:
+          type: string
+        paymentToken:
+          type: string
+        platform:
+          type: string
+          enum: [web, android, ios]
+
+    SubscriptionUsage:
+      type: object
+      required: [used, limit, percentage, canAdd]
+      properties:
+        used:
+          type: number
+        limit:
+          type: number
+          nullable: true
+        percentage:
+          type: number
+        canAdd:
+          type: boolean
+        planName:
+          type: string
+
+    CreatePlanRequest:
+      type: object
+      required: [name, price, currency, interval, features]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        currency:
+          type: string
+        interval:
+          type: string
+          enum: [monthly, yearly, lifetime]
+        transactionLimit:
+          type: number
+        features:
+          type: array
+          items:
+            type: string
+        isFree:
+          type: boolean
+        trialDays:
+          type: number
+        googlePlayProductId:
+          type: string
+        appleProductId:
+          type: string
+
+    UpdatePlanRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        transactionLimit:
+          type: number
+        features:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+
+    # ─── PAYMENTS ─────────────────────────────────────────────────
+    PaymentRecord:
+      type: object
+      required: [id, userId, planId, amount, currency, status, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        planId:
+          type: string
+        plan:
+          $ref: "#/components/schemas/Plan"
+          nullable: true
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed, failed, refunded]
+        platform:
+          type: string
+          enum: [web, android, ios]
+          nullable: true
+        transactionId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedPayments:
+      type: object
+      required: [payments, total, page, limit, totalPages]
+      properties:
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentRecord"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+        totalPages:
+          type: number
+
+    VerifyPaymentRequest:
+      type: object
+      required: [platform, purchaseToken, productId]
+      properties:
+        platform:
+          type: string
+          enum: [android, ios]
+        purchaseToken:
+          type: string
+        productId:
+          type: string
+        planId:
+          type: string
+
+    # ─── NOTIFICATIONS ────────────────────────────────────────────
+    Notification:
+      type: object
+      required: [id, title, body, type, isRead, createdAt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+          enum: [budget_alert, subscription, system, transaction, backup]
+        isRead:
+          type: boolean
+        data:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedNotifications:
+      type: object
+      required: [notifications, total, page, limit, totalPages, unreadCount]
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+        totalPages:
+          type: number
+        unreadCount:
+          type: number
+
+    SendNotificationRequest:
+      type: object
+      required: [title, body]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        targetUsers:
+          type: string
+          enum: [all, subscribed, trial, free]
+        userIds:
+          type: array
+          items:
+            type: string
+        type:
+          type: string
+          enum: [budget_alert, subscription, system, transaction, backup]
+
+    # ─── BACKUPS ─────────────────────────────────────────────────
+    Backup:
+      type: object
+      required: [id, status, createdAt]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        fileSize:
+          type: number
+          nullable: true
+        googleDriveId:
+          type: string
+          nullable: true
+        encrypted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    # ─── SETTINGS ────────────────────────────────────────────────
+    UserSettings:
+      type: object
+      required: [id, userId, theme, language, currencyCode, dateFormat, notificationsEnabled]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        theme:
+          type: string
+          enum: [light, dark, system]
+        language:
+          type: string
+          enum: [ar, en]
+        currencyCode:
+          type: string
+        dateFormat:
+          type: string
+        numberFormat:
+          type: string
+        notificationsEnabled:
+          type: boolean
+        budgetAlerts:
+          type: boolean
+        weeklyReport:
+          type: boolean
+        backupEnabled:
+          type: boolean
+        backupFrequency:
+          type: string
+          enum: [daily, weekly, monthly]
+
+    UpdateSettingsRequest:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark, system]
+        language:
+          type: string
+          enum: [ar, en]
+        currencyCode:
+          type: string
+        dateFormat:
+          type: string
+        numberFormat:
+          type: string
+        notificationsEnabled:
+          type: boolean
+        budgetAlerts:
+          type: boolean
+        weeklyReport:
+          type: boolean
+        backupEnabled:
+          type: boolean
+        backupFrequency:
+          type: string
+          enum: [daily, weekly, monthly]
+
+    # ─── ADMIN ───────────────────────────────────────────────────
+    AdminStats:
+      type: object
+      required: [totalUsers, activeUsers, trialUsers, subscribedUsers, totalRevenue, monthlyRevenue, totalTransactions, newUsersThisMonth]
+      properties:
+        totalUsers:
+          type: number
+        activeUsers:
+          type: number
+        trialUsers:
+          type: number
+        subscribedUsers:
+          type: number
+        totalRevenue:
+          type: number
+        monthlyRevenue:
+          type: number
+        totalTransactions:
+          type: number
+        newUsersThisMonth:
+          type: number
+        conversionRate:
+          type: number
+
+    RevenueData:
+      type: object
+      required: [labels, revenue, subscriptions]
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+        revenue:
+          type: array
+          items:
+            type: number
+        subscriptions:
+          type: array
+          items:
+            type: number
+        total:
+          type: number
+
+    AdminUserDetail:
+      type: object
+      required: [id, email, name, role, isActive, createdAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        currencyCode:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [user, admin]
+        isActive:
+          type: boolean
+        subscription:
+          $ref: "#/components/schemas/UserSubscription"
+          nullable: true
+        transactionCount:
+          type: number
+        accountCount:
+          type: number
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedAdminUsers:
+      type: object
+      required: [users, total, page, limit, totalPages]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUserDetail"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+        totalPages:
+          type: number
+
+    AdminUpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+        isActive:
+          type: boolean
+        currencyCode:
+          type: string
+
+    PaginatedAdminSubscriptions:
+      type: object
+      required: [subscriptions, total, page, limit, totalPages]
+      properties:
+        subscriptions:
+          type: array
+          items:
+            type: object
+            required: [id, userId, userName, planName, status, startDate, expiresAt]
+            properties:
+              id:
+                type: string
+              userId:
+                type: string
+              userName:
+                type: string
+              userEmail:
+                type: string
+              planName:
+                type: string
+              status:
+                type: string
+                enum: [trial, active, cancelled, expired]
+              startDate:
+                type: string
+                format: date-time
+              expiresAt:
+                type: string
+                format: date-time
+              amount:
+                type: number
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+        totalPages:
+          type: number
+
+    SystemSettings:
+      type: object
+      required: [appName, trialDays, freeTransactionLimit, maintenanceMode]
+      properties:
+        appName:
+          type: string
+        appNameAr:
+          type: string
+        supportEmail:
+          type: string
+        trialDays:
+          type: number
+        freeTransactionLimit:
+          type: number
+        maintenanceMode:
+          type: boolean
+        registrationEnabled:
+          type: boolean
+        defaultCurrency:
+          type: string
+        defaultLanguage:
+          type: string
+          enum: [ar, en]
+
+    UpdateSystemSettingsRequest:
+      type: object
+      properties:
+        appName:
+          type: string
+        appNameAr:
+          type: string
+        supportEmail:
+          type: string
+        trialDays:
+          type: number
+        freeTransactionLimit:
+          type: number
+        maintenanceMode:
+          type: boolean
+        registrationEnabled:
+          type: boolean
+        defaultCurrency:
+          type: string
+        defaultLanguage:
+          type: string
+          enum: [ar, en]
